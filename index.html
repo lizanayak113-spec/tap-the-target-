@@ -1,1 +1,247 @@
-build me a game using htlm5 tap the target
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tap the Target 🎯</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  color: white;
+  text-align: center;
+  background: linear-gradient(135deg, #21105c, #5426a8, #e34b9b);
+  overflow-x: hidden;
+}
+
+.container {
+  width: 92%;
+  max-width: 600px;
+  margin: 25px auto;
+  padding: 22px;
+  background: rgba(255,255,255,0.13);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 25px;
+  box-shadow: 0 12px 35px rgba(0,0,0,0.25);
+}
+
+h1 {
+  font-size: 34px;
+  margin: 5px 0 10px;
+}
+
+.subtitle {
+  color: #ffe5fa;
+  margin-bottom: 22px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.stat {
+  padding: 12px 4px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 15px;
+}
+
+.stat strong {
+  display: block;
+  font-size: 22px;
+  margin-top: 5px;
+}
+
+#arena {
+  height: 330px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #fce7ff, #c8f5ff);
+  border: 3px solid white;
+  touch-action: manipulation;
+}
+
+#target {
+  display: none;
+  position: absolute;
+  width: 62px;
+  height: 62px;
+  border: 4px solid white;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 12%, #ff355e 14% 35%, #fff 37% 52%, #ff355e 54%);
+  box-shadow: 0 4px 15px #7b1b65;
+  cursor: pointer;
+  animation: pop 0.25s ease-out;
+  touch-action: manipulation;
+}
+
+@keyframes pop {
+  from { transform: scale(0.5); }
+  to { transform: scale(1); }
+}
+
+#message {
+  color: #fff3fc;
+  min-height: 24px;
+  margin: 16px 0;
+  font-weight: bold;
+}
+
+button {
+  border: none;
+  padding: 14px 25px;
+  margin: 5px;
+  border-radius: 30px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  background: #ffdf58;
+  color: #35145d;
+  box-shadow: 0 5px 0 #d5a82b;
+}
+
+button:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 #d5a82b;
+}
+
+#restart {
+  display: none;
+}
+
+.tip {
+  font-size: 13px;
+  color: #ffe5fa;
+  margin-top: 20px;
+}
+
+@media (max-width: 400px) {
+  h1 { font-size: 28px; }
+  #arena { height: 300px; }
+  .container { padding: 15px; }
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+  <h1>🎯 Tap the Target</h1>
+  <div class="subtitle">Tap fast. Score big. Beat your best!</div>
+
+  <div class="stats">
+    <div class="stat">⭐ Score<strong id="score">0</strong></div>
+    <div class="stat">⏱️ Time<strong id="time">30</strong></div>
+    <div class="stat">🏆 Level<strong id="level">1</strong></div>
+  </div>
+
+  <div id="arena">
+    <button id="target" aria-label="Tap the target"></button>
+  </div>
+
+  <div id="message">Ready? Let's test your speed! 💖</div>
+  <button id="start">▶ Start Game</button>
+  <button id="restart">↻ Play Again</button>
+
+  <div class="tip">💡 Tip: Target chhota aur fast hota jayega!</div>
+</div>
+
+<script>
+const arena = document.getElementById("arena");
+const target = document.getElementById("target");
+const scoreText = document.getElementById("score");
+const timeText = document.getElementById("time");
+const levelText = document.getElementById("level");
+const message = document.getElementById("message");
+const startButton = document.getElementById("start");
+const restartButton = document.getElementById("restart");
+
+let score = 0;
+let timeLeft = 30;
+let level = 1;
+let playing = false;
+let timer = null;
+
+function moveTarget() {
+  const size = Math.max(32, 62 - (level - 1) * 4);
+  target.style.width = size + "px";
+  target.style.height = size + "px";
+
+  const maxX = arena.clientWidth - size;
+  const maxY = arena.clientHeight - size;
+
+  target.style.left = Math.random() * Math.max(0, maxX) + "px";
+  target.style.top = Math.random() * Math.max(0, maxY) + "px";
+}
+
+function updateLevel() {
+  level = Math.floor(score / 10) + 1;
+  levelText.textContent = level;
+}
+
+function startGame() {
+  clearInterval(timer);
+  score = 0;
+  timeLeft = 30;
+  level = 1;
+  playing = true;
+
+  scoreText.textContent = score;
+  timeText.textContent = timeLeft;
+  levelText.textContent = level;
+  message.textContent = "Go go go! 🎯";
+  startButton.style.display = "none";
+  restartButton.style.display = "none";
+  target.style.display = "block";
+  moveTarget();
+
+  timer = setInterval(() => {
+    timeLeft--;
+    timeText.textContent = timeLeft;
+
+    if (timeLeft <= 0) {
+      endGame();
+    }
+  }, 1000);
+}
+
+function endGame() {
+  playing = false;
+  clearInterval(timer);
+  target.style.display = "none";
+  restartButton.style.display = "inline-block";
+
+  message.textContent = "🎉 Game Over! You scored " + score +
+    " points! Level " + level + " reached!";
+}
+
+target.addEventListener("pointerdown", (event) => {
+  event.preventDefault();
+  if (!playing) return;
+
+  score++;
+  scoreText.textContent = score;
+  updateLevel();
+  moveTarget();
+
+  if (score > 0 && score % 5 === 0) {
+    message.textContent = "Amazing! 🔥 " + score + " points!";
+  } else {
+    message.textContent = "Nice tap! ✨";
+  }
+});
+
+startButton.addEventListener("click", startGame);
+restartButton.addEventListener("click", startGame);
+</script>
+</body>
+</html>
